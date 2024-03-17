@@ -24,18 +24,22 @@ def read_csv_and_print_head(file_path):
     return df
 
 
-def write_dataframe_to_sql(df, engine, table_name):
-    """
-    Writes the DataFrame into SQL Server and prints a message if successful.
-    """
-    print("Inside write_dataframe_to_sql function")  # Debugging line
-    if df is not None:
-        df.to_sql(
-            name=table_name,
-            con=engine,
-            if_exists='append',
-            index=False
-        )
-        print("DataFrame has been successfully written to SQL Server.")
+import pandas as pd
+import sqlalchemy
+
+def write_dataframe_to_sql(df, connection_string, table_name):
+    try:
+        # Create SQLAlchemy engine
+        sqlalchemy_engine = sqlalchemy.create_engine(connection_string)
+
+        # Write dataframe to SQL Server table
+        df.to_sql(table_name, sqlalchemy_engine, index=False, if_exists='replace')
+
+        print("Data has been successfully written to SQL Server table:", table_name)
+
+    except Exception as e:
+        print("Error writing data to SQL Server table:", e)
+
+
 
 
