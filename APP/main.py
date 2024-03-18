@@ -59,6 +59,8 @@ def main():
             print("\nTest set shapes:")
             print("X_test:", X_test.shape)
             print("y_test:", y_test.shape)
+            print(X_train.dtypes)
+
 
             # Assuming ytrain, xtrain, ytest, and xtest are pandas Series or DataFrames
             mse, r2, mase, predictions = train_test_sarimax(X_train, X_test, y_train, y_test, order=(1, 1, 1),

@@ -1,0 +1,13 @@
+# Get input from the client
+            data_for_prediction = get_input()
+
+            # Create a DataFrame from the list of data
+            X_future = pd.DataFrame([data_for_prediction], columns=[
+                'NH Budget', 'Production Calendar', 'Customer Calendar', 'ADC Calendar',
+                'Customer Consumption Last 12 week', 'Stock Plant : TIC Tool', 'CLIENT FORCAST S1',
+                'HC DIRECT', 'HC INDIRECT', 'ABS P', 'ABS NP', 'FLUCTUATION', 'WeekNumber', 'Month', 'Year', 'Date'
+            ])
+
+            # Make predictions
+            y_pred = predict_sarimax(model, X_future)
+            print("Predicted values:", y_pred)

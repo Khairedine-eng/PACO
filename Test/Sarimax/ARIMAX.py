@@ -1,81 +1,89 @@
-from sklearn.metrics import mean_squared_error, r2_score
-from statsmodels.tsa.stattools import acovf
-import numpy as np
+import pandas as pd
+import statsmodels.api as sm
 
-def mean_absolute_scaled_error(y_true, y_pred, y_train):
+def fit_sarimax(X, y, order=(1, 0, 1), seasonal_order=(0, 0, 0, 0), exog=None):
     """
-    Calculate Mean Absolute Scaled Error (MASE).
+    Fit a SARIMAX model.
 
     Parameters:
-    - y_true (array-like): True values.
-    - y_pred (array-like): Predicted values.
-    - y_train (array-like): Training data.
+    - X: Exogenous variables (array-like or DataFrame).
+    - y: Endogenous variable (array-like or DataFrame).
+    - order: The (p,d,q) order of the non-seasonal component of the ARIMA model. Default is (1, 0, 1).
+    - seasonal_order: The (P,D,Q,s) order of the seasonal component of the ARIMA model.
+                      Default is (0, 0, 0, 0) indicating no seasonal effect.
+    - exog: Exogenous variables (array-like or DataFrame). Default is None.
 
     Returns:
-    - mase (float): Mean Absolute Scaled Error.
+    - sarimax_model: Fitted SARIMAX model.
     """
-    scale = acovf(y_train)
-    errors = y_true - y_pred
-    mae = np.mean(np.abs(errors))
-    mase = mae / np.mean(np.abs(scale))
-    return mase
 
-from statsmodels.tsa.statespace.sarimax import SARIMAX
+    # Ensure inputs are pandas DataFrame
+    if not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X)
+    if not isinstance(y, pd.Series):
+        y = pd.Series(y.squeeze())
 
-from statsmodels.tsa.statespace.sarimax import SARIMAX
+    # Fit SARIMAX model
+    sarimax_model = sm.tsa.SARIMAX(y, exog=exog, order=order, seasonal_order=seasonal_order, enforce_stationarity=False)
+    fitted_model = sarimax_model.fit()
 
-def train_test_sarimax(X_train, X_test, y_train, y_test, order=(1, 1, 1), seasonal_order=(0, 0, 0, 0)):
+    return fitted_model
+
+
+def predict_sarimax(model, X_future):
     """
-    Train and test SARIMAX model.
+    Make predictions with SARIMAX model.
 
-    Args:
-        X_train (DataFrame): Exogenous variables training data.
-        X_test (DataFrame): Exogenous variables testing data.
-        y_train (Series): Target variable training data.
-        y_test (Series): Target variable testing data.
-        order (tuple): Non-seasonal ARIMA order.
-        seasonal_order (tuple): Seasonal ARIMA order.
+    Parameters:
+    - model: Fitted SARIMAX model.
+    - X_future: Future exogenous variables (array-like).
 
     Returns:
-        float, float, float, Series: Mean squared error, R-squared score, mean absolute scaled error, predictions.
+    - y_pred: Predicted values.
     """
-    # Preprocess exogenous variables
-    X_train = preprocess_exog(X_train)
-    X_test = preprocess_exog(X_test)
+    # Predictions
+    y_pred = model.predict(exog=X_future)
+    return y_pred
 
-    # Train SARIMAX model
-    model = SARIMAX(endog=y_train, exog=X_train, order=order, seasonal_order=seasonal_order)
-    fitted_model = model.fit()
 
-    # Make predictions
-    predictions = fitted_model.forecast(steps=len(X_test), exog=X_test)
+from datetime import datetime
 
-    # Evaluate model
-    mse = mean_squared_error(y_test, predictions)
-    r2 = r2_score(y_test, predictions)
-    mase = mean_absolute_scaled_error(y_test, predictions)
-
-    return mse, r2, mase, predictions
-
-def preprocess_exog(X):
+def get_input():
     """
-    Preprocess exogenous variables.
-
-    Args:
-        X (DataFrame): Exogenous variables.
+    Get input from the client for future prediction.
 
     Returns:
-        DataFrame: Preprocessed exogenous variables.
+    - data_for_prediction: List of data for prediction.
     """
-    # Fill missing values with 0
-    X.fillna(0, inplace=True)
+    print("Please enter the values for the following features:")
 
-    # Identify columns with string values
-    str_cols = X.select_dtypes(include=['object']).columns
+    # Get input for each feature
+    NH_Budget = float(input("NH Budget: "))
+    Production_Calendar = float(input("Production Calendar: "))
+    Customer_Calendar = float(input("Customer Calendar: "))
+    ADC_Calendar = float(input("ADC Calendar: "))
+    Customer_Consumption_Last_12_week = float(input("Customer Consumption Last 12 week: "))
+    Stock_Plant_TIC_Tool = float(input("Stock Plant : TIC Tool: "))
+    CLIENT_FORCAST_S1 = float(input("CLIENT FORCAST S1: "))
+    HC_DIRECT = float(input("HC DIRECT: "))
+    HC_INDIRECT = float(input("HC INDIRECT: "))
+    ABS_P = float(input("ABS P: "))
+    ABS_NP = float(input("ABS NP: "))
+    FLUCTUATION = float(input("FLUCTUATION: "))
+    WeekNumber = int(input("WeekNumber: "))
+    Month = int(input("Month: "))
+    Year = int(input("Year: "))
 
-    # Convert string columns to numeric type
-    X[str_cols] = X[str_cols].apply(lambda x: x.str.replace(',', '.').astype(float))
+    # Get date input
+    Date = datetime(Year, Month, WeekNumber * 7)
 
+    # Construct list of data for prediction
+    data_for_prediction = [
+        NH_Budget, Production_Calendar, Customer_Calendar, ADC_Calendar,
+        Customer_Consumption_Last_12_week, Stock_Plant_TIC_Tool, CLIENT_FORCAST_S1,
+        HC_DIRECT, HC_INDIRECT, ABS_P, ABS_NP, FLUCTUATION, WeekNumber, Month, Year, Date
+    ]
 
-    return X
+    return data_for_prediction
+
 

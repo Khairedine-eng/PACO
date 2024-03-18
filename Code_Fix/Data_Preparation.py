@@ -16,15 +16,16 @@ def prepare_data_for_modeling(filtered_df):
     filtered_df['Date'] = pd.to_datetime(filtered_df['Date'], format='%d/%m/%Y')
 
     # Convert numeric columns to float and replace commas with periods
-    numeric_cols = ['NH Budget', 'NH Actual',
-                    'CLIENT FORCAST S1', 'HC DIRECT', 'HC INDIRECT', 'ABS P', 'ABS NP', 'FLUCTUATION']
+    numeric_cols = ['NH Budget', 'Production Calendar', 'Customer Calendar', 'ADC Calendar',
+                   'Customer Consumption Last 12 week', 'Stock Plant : TIC Tool', 'CLIENT FORCAST S1',
+                   'HC DIRECT', 'HC INDIRECT', 'ABS P', 'ABS NP', 'FLUCTUATION']
     filtered_df[numeric_cols] = filtered_df[numeric_cols].replace(',', '.', regex=True).astype(float)
 
     # Separate target variable (y)
     y = filtered_df['NH Actual']
 
     # Select exogenous variables (X)
-    X = filtered_df.drop(columns=['NH Actual'])  # Drop target variable from X
+    X = filtered_df.drop(columns=['NH Actual', 'Date'])  # Drop target variable from X
 
     # Fill missing values with 0
     X.fillna(0, inplace=True)
